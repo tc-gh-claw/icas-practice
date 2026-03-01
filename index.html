@@ -1,713 +1,8 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ICAS 練習測試 | ICAS Practice Test</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        /* Header */
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
-        /* Subject Selection */
-        .subject-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .subject-card {
-            background: white;
-            border-radius: 16px;
-            padding: 30px;
-            text-align: center;
-            cursor: pointer;
-            transition: transform 0.3s, box-shadow 0.3s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        .subject-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-        }
-
-        .subject-icon {
-            font-size: 3rem;
-            margin-bottom: 15px;
-        }
-
-        .subject-name {
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 8px;
-        }
-
-        .subject-desc {
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        /* Quiz Container */
-        .quiz-container {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            display: none;
-        }
-
-        .quiz-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #f0f0f0;
-        }
-
-        .quiz-title {
-            font-size: 1.5rem;
-            color: #333;
-        }
-
-        .quiz-stats {
-            display: flex;
-            gap: 20px;
-        }
-
-        .stat {
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: #667eea;
-        }
-
-        .stat-label {
-            font-size: 0.8rem;
-            color: #888;
-        }
-
-        .timer {
-            background: #ff6b6b;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: bold;
-        }
-
-        /* Question */
-        .question-container {
-            margin-bottom: 25px;
-        }
-
-        .question-number {
-            color: #667eea;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .question-text {
-            font-size: 1.2rem;
-            color: #333;
-            margin-bottom: 20px;
-            line-height: 1.6;
-        }
-
-        /* Options */
-        .options {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .option {
-            background: #f8f9fa;
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
-            padding: 15px 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .option:hover {
-            background: #e9ecef;
-            border-color: #667eea;
-        }
-
-        .option.selected {
-            background: #667eea;
-            border-color: #667eea;
-            color: white;
-        }
-
-        .option.correct {
-            background: #51cf66;
-            border-color: #51cf66;
-            color: white;
-        }
-
-        .option.wrong {
-            background: #ff6b6b;
-            border-color: #ff6b6b;
-            color: white;
-        }
-
-        .option-letter {
-            width: 32px;
-            height: 32px;
-            background: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: #667eea;
-            flex-shrink: 0;
-        }
-
-        .option.selected .option-letter,
-        .option.correct .option-letter,
-        .option.wrong .option-letter {
-            color: inherit;
-            background: rgba(255,255,255,0.3);
-        }
-
-        /* Explanation */
-        .explanation {
-            background: #fff9e6;
-            border-left: 4px solid #ffc107;
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 20px;
-            display: none;
-        }
-
-        .explanation.show {
-            display: block;
-            animation: slideDown 0.3s ease;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .explanation-title {
-            font-weight: bold;
-            color: #856404;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .explanation-text {
-            color: #856404;
-            line-height: 1.6;
-        }
-
-        .correct-answer {
-            color: #51cf66;
-            font-weight: bold;
-        }
-
-        .your-answer {
-            color: #ff6b6b;
-            font-weight: bold;
-        }
-
-        /* Buttons */
-        .btn {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: bold;
-        }
-
-        .btn:hover {
-            background: #5a6fd6;
-            transform: translateY(-2px);
-        }
-
-        .btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-        }
-
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
-
-        .btn-container {
-            display: flex;
-            gap: 15px;
-            margin-top: 25px;
-        }
-
-        /* Results */
-        .results-container {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            display: none;
-        }
-
-        .score-circle {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 30px;
-            color: white;
-            font-size: 2.5rem;
-            font-weight: bold;
-        }
-
-        .results-title {
-            font-size: 2rem;
-            color: #333;
-            margin-bottom: 15px;
-        }
-
-        .results-message {
-            color: #666;
-            font-size: 1.1rem;
-            margin-bottom: 30px;
-        }
-
-        .results-stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .result-stat {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 20px;
-        }
-
-        .result-stat-value {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #667eea;
-        }
-
-        .result-stat-label {
-            color: #888;
-            font-size: 0.9rem;
-        }
-
-        /* Progress Bar */
-        .progress-bar {
-            background: #e9ecef;
-            height: 8px;
-            border-radius: 4px;
-            margin-bottom: 25px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            height: 100%;
-            border-radius: 4px;
-            transition: width 0.3s;
-        }
-
-        /* Back Button */
-        .back-btn {
-            background: none;
-            border: 2px solid #667eea;
-            color: #667eea;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-            margin-bottom: 20px;
-        }
-
-        .back-btn:hover {
-            background: #667eea;
-            color: white;
-        }
-
-        /* Responsive */
-        @media (max-width: 600px) {
-            .header h1 {
-                font-size: 1.8rem;
-            }
-            
-            .quiz-header {
-                flex-direction: column;
-                gap: 15px;
-                align-items: flex-start;
-            }
-            
-            .results-stats {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <h1>🎓 ICAS 練習測試</h1>
-            <p>選擇科目開始練習，答錯會有詳細解釋</p>
-        </div>
-
-        <!-- Subject Selection -->
-        <div id="subjectSelection" class="subject-grid">
-            <div class="subject-card" onclick="startQuiz('math')">
-                <div class="subject-icon">🔢</div>
-                <div class="subject-name">數學 Mathematics</div>
-                <div class="subject-desc">算術、代數、幾何、數據分析</div>
-            </div>
-            <div class="subject-card" onclick="startQuiz('english')">
-                <div class="subject-icon">📚</div>
-                <div class="subject-name">英文 English</div>
-                <div class="subject-desc">閱讀理解、文法、詞彙</div>
-            </div>
-            <div class="subject-card" onclick="startQuiz('science')">
-                <div class="subject-icon">🔬</div>
-                <div class="subject-name">科學 Science</div>
-                <div class="subject-desc">觀察、實驗、推理、科學概念</div>
-            </div>
-        </div>
-
-        <!-- Quiz Container -->
-        <div id="quizContainer" class="quiz-container">
-            <button class="back-btn" onclick="goBack()">← 返回選單</button>
-            
-            <div class="quiz-header">
-                <div class="quiz-title" id="quizTitle">數學測試</div>
-                <div class="quiz-stats">
-                    <div class="stat">
-                        <div class="stat-value" id="questionNum">1</div>
-                        <div class="stat-label">題目</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value" id="scoreDisplay">0</div>
-                        <div class="stat-label">分數</div>
-                    </div>
-                    <div class="timer" id="timer">15:00</div>
-                </div>
-            </div>
-
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressBar" style="width: 0%"></div>
-            </div>
-
-            <div class="question-container">
-                <div class="question-number">題目 <span id="currentQ">1</span> / <span id="totalQ">10</span></div>
-                <div class="question-text" id="questionText">Loading...</div>
-                
-                <div class="options" id="optionsContainer">
-                    <!-- Options will be generated by JS -->
-                </div>
-
-                <div class="explanation" id="explanation">
-                    <div class="explanation-title">💡 解釋 Explanation</div>
-                    <div class="explanation-text" id="explanationText"></div>
-                </div>
-            </div>
-
-            <div class="btn-container">
-                <button class="btn" id="submitBtn" onclick="submitAnswer()">提交答案</button>
-                <button class="btn btn-secondary" id="nextBtn" onclick="nextQuestion()" style="display:none">下一題 →</button>
-            </div>
-        </div>
-
-        <!-- Results Container -->
-        <div id="resultsContainer" class="results-container">
-            <div class="score-circle" id="finalScore">0%</div>
-            <h2 class="results-title">測試完成！</h2>
-            <p class="results-message" id="resultsMessage">做得好！繼續努力！</p>
-            
-            <div class="results-stats">
-                <div class="result-stat">
-                    <div class="result-stat-value" id="correctCount">0</div>
-                    <div class="result-stat-label">答對</div>
-                </div>
-                <div class="result-stat">
-                    <div class="result-stat-value" id="wrongCount">0</div>
-                    <div class="result-stat-label">答錯</div>
-                </div>
-                <div class="result-stat">
-                    <div class="result-stat-value" id="timeUsed">0:00</div>
-                    <div class="result-stat-label">用時</div>
-                </div>
-            </div>
-
-            <button class="btn" onclick="restartQuiz()">再試一次</button>
-        </div>
-    </div>
-
-    <script>
-        // Question Banks
-        const questionBanks = {
-            math: [
-                {
-                    question: "小明有 24 顆蘋果，他想平均分給 6 位朋友。每位朋友可以得到多少顆蘋果？",
-                    options: ["3顆", "4顆", "5顆", "6顆"],
-                    correct: 1,
-                    explanation: "這是一道除法問題。24 ÷ 6 = 4。每位朋友可以得到 4 顆蘋果。\n\nThis is a division problem. 24 ÷ 6 = 4. Each friend gets 4 apples."
-                },
-                {
-                    question: "一個長方形長 8 cm，闊 5 cm，它的面積是多少？",
-                    options: ["13 cm²", "26 cm²", "40 cm²", "45 cm²"],
-                    correct: 2,
-                    explanation: "長方形面積 = 長 × 闊 = 8 × 5 = 40 cm²\n\nArea of rectangle = length × width = 8 × 5 = 40 cm²"
-                },
-                {
-                    question: "如果 3x + 5 = 20，x 等於多少？",
-                    options: ["3", "4", "5", "6"],
-                    correct: 2,
-                    explanation: "3x + 5 = 20\n3x = 20 - 5\n3x = 15\nx = 5\n\nSubtract 5 from both sides: 3x = 15\nDivide by 3: x = 5"
-                },
-                {
-                    question: "一個三角形的三個角分別是 60°、70° 和 x°，x 是多少度？",
-                    options: ["40°", "50°", "60°", "70°"],
-                    correct: 1,
-                    explanation: "三角形內角和 = 180°\n60° + 70° + x° = 180°\nx° = 180° - 130° = 50°\n\nSum of angles in triangle = 180°\nx° = 180° - 60° - 70° = 50°"
-                },
-                {
-                    question: "一本書原價 $80，現在打 75 折，售價是多少？",
-                    options: ["$55", "$60", "$65", "$70"],
-                    correct: 1,
-                    explanation: "75折 = 原價 × 0.75\n$80 × 0.75 = $60\n\n75% of $80 = $80 × 0.75 = $60"
-                },
-                {
-                    question: "在數列 2, 5, 8, 11, 14, ... 中，下一個數字是什麼？",
-                    options: ["15", "16", "17", "18"],
-                    correct: 2,
-                    explanation: "這是等差數列，公差為 3。\n2 (+3)→ 5 (+3)→ 8 (+3)→ 11 (+3)→ 14 (+3)→ 17\n\nThis is an arithmetic sequence with common difference 3. Next number is 17."
-                },
-                {
-                    question: "一個圓的直徑是 10 cm，它的圓周大約是多少？（π ≈ 3.14）",
-                    options: ["15.7 cm", "31.4 cm", "62.8 cm", "78.5 cm"],
-                    correct: 1,
-                    explanation: "圓周 = π × 直徑 = 3.14 × 10 = 31.4 cm\n\nCircumference = π × diameter = 3.14 × 10 = 31.4 cm"
-                },
-                {
-                    question: "某班有 30 名學生，其中 18 名是女生。女生佔全班的百份比是多少？",
-                    options: ["50%", "55%", "60%", "65%"],
-                    correct: 2,
-                    explanation: "百份比 = (部分 ÷ 全部) × 100%\n= (18 ÷ 30) × 100%\n= 0.6 × 100%\n= 60%\n\nPercentage = (18 ÷ 30) × 100% = 60%"
-                },
-                {
-                    question: "3/4 + 1/2 = ?",
-                    options: ["1/4", "4/6", "1 1/4", "2"],
-                    correct: 2,
-                    explanation: "先通分：1/2 = 2/4\n3/4 + 2/4 = 5/4 = 1 1/4\n\nConvert to common denominator: 1/2 = 2/4\n3/4 + 2/4 = 5/4 = 1 1/4"
-                },
-                {
-                    question: "如果時鐘顯示 3:45，時針和分針之間的夾角是多少度？",
-                    options: ["90°", "120°", "157.5°", "180°"],
-                    correct: 2,
-                    explanation: "分針指向 9 (270°)，時針在 3 和 4 之間 (3 × 30° + 45/60 × 30° = 112.5°)\n夾角 = 270° - 112.5° = 157.5°\n\nHour hand: 3 × 30° + 45/60 × 30° = 112.5°\nMinute hand: 270°\nAngle = 270° - 112.5° = 157.5°"
-                }
-            ],
-            english: [
-                {
-                    question: "Choose the correct spelling:",
-                    options: ["accomodate", "accommodate", "acommodate", "acomodate"],
-                    correct: 1,
-                    explanation: "正確拼寫是 'accommodate'（兩個 c，兩個 m）\n\nCorrect spelling is 'accommodate' with double c and double m."
-                },
-                {
-                    question: "Which word is a synonym of 'happy'?",
-                    options: ["sad", "joyful", "angry", "tired"],
-                    correct: 1,
-                    explanation: "'Joyful' 是 'happy' 的同義詞，都表示快樂的意思。\n\n'Joyful' means full of joy, which is similar to 'happy'."
-                },
-                {
-                    question: "Choose the correct sentence:",
-                    options: [
-                        "She don't like apples.",
-                        "She doesn't likes apples.",
-                        "She doesn't like apples.",
-                        "She not like apples."
-                    ],
-                    correct: 2,
-                    explanation: "第三人稱單數用 'doesn't'，後面動詞用原形 'like'。\n\nWith third person singular, use 'doesn't' + base form of verb."
-                },
-                {
-                    question: "What is the plural of 'child'?",
-                    options: ["childs", "children", "childes", "childen"],
-                    correct: 1,
-                    explanation: "'Child' 的複數是不規則變化 'children'。\n\n'Child' has an irregular plural form: 'children'."
-                },
-                {
-                    question: "Choose the correct preposition: 'I am interested ___ learning English.'",
-                    options: ["on", "at", "in", "for"],
-                    correct: 2,
-                    explanation: "'Interested in' 是固定搭配。\n\nThe correct collocation is 'interested in'."
-                },
-                {
-                    question: "Which sentence uses the past perfect tense correctly?",
-                    options: [
-                        "I have eaten before he came.",
-                        "I had eaten before he came.",
-                        "I ate before he had come.",
-                        "I was eaten before he came."
-                    ],
-                    correct: 1,
-                    explanation: "Past perfect (had + past participle) 用來表示過去某個時間之前已完成的動作。\n\nPast perfect is used for an action completed before another past action."
-                },
-                {
-                    question: "What does 'benevolent' mean?",
-                    options: ["evil", "kind and generous", "angry", "lazy"],
-                    correct: 1,
-                    explanation: "'Benevolent' 意思是仁慈的、善良的。\n\n'Benevolent' means kind, generous, and caring about others."
-                },
-                {
-                    question: "Choose the correct article: '___ honest person would not lie.'",
-                    options: ["A", "An", "The", "No article"],
-                    correct: 1,
-                    explanation: "'Honest' 雖然以 h 開頭，但發音是元音 /ɒnɪst/，所以用 'an'。\n\nUse 'an' before words starting with a vowel sound. 'Honest' is pronounced /'ɒnɪst/."
-                },
-                {
-                    question: "Identify the noun in this sentence: 'The quick brown fox jumps over the lazy dog.'",
-                    options: ["quick", "jumps", "fox", "over"],
-                    correct: 2,
-                    explanation: "'Fox' 是名詞（動物），'quick' 是形容詞，'jumps' 是動詞，'over' 是介詞。\n\n'Fox' is a noun. 'Quick' is an adjective, 'jumps' is a verb, 'over' is a preposition."
-                },
-                {
-                    question: "Which is the correct comparative form of 'good'?",
-                    options: ["gooder", "more good", "better", "best"],
-                    correct: 2,
-                    explanation: "'Good' 的比較級是不規則變化 'better'，最高級是 'best'。\n\n'Good' has irregular comparative (better) and superlative (best) forms."
-                }
-            ],
-            science: [
-                {
-                    question: "水在什麼溫度下會沸騰？",
-                    options: ["90°C", "100°C", "110°C", "120°C"],
-                    correct: 1,
-                    explanation: "在標準大氣壓下，水的沸點是 100°C。\n\nWater boils at 100°C at standard atmospheric pressure."
-                },
-                {
-                    question: "植物進行光合作用需要什麼？",
-                    options: ["氧氣和二氧化碳", "陽光、水和二氧化碳", "氧氣和水", "陽光和氧氣"],
-                    correct: 1,
-                    explanation: "光合作用需要陽光、水和二氧化碳，產生氧氣和葡萄糖。\n\nPhotosynthesis requires sunlight, water, and carbon dioxide to produce oxygen and glucose."
-                },
-                {
-                    question: "人體最大的器官是什麼？",
-                    options: ["肝臟", "大腦", "皮膚", "心臟"],
-                    correct: 2,
-                    explanation: "皮膚是人體最大的器官，覆蓋整個身體表面。\n\nThe skin is the body's largest organ, covering the entire body surface."
-                },
-                {
-                    question: "聲音在什麼介質中傳播最快？",
-                    options: ["空氣", "水", "固體（如鋼鐵）", "真空"],
-                    correct: 2,
-                    explanation: "聲音在固體中傳播最快，因為分子排列緊密。在真空中不能傳播。\n\nSound travels fastest in solids because molecules are closely packed. It cannot travel in a vacuum."
-                },
-                {
-                    question: "下列哪種能源是可再生能源？",
-                    options: ["煤炭", "石油", "太陽能", "天然氣"],
-                    correct: 2,
-                    explanation: "太陽能是可再生能源，因為太陽每天都會升起。煤炭、石油和天然氣都是化石燃料，會用盡。\n\nSolar energy is renewable because the sun continues to shine. Coal, oil, and natural gas are fossil fuels that will run out."
-                },
-                {
-                    question: "磁鐵的哪個部位磁力最強？",
-                    options: ["中間", "兩極 (N 極和 S 極)", "側面", "底部"],
-                    correct: 1,
-                    explanation: "磁鐵的兩極（北極和南極）磁力最強。\n\nThe magnetic field is strongest at the two poles (North and South poles) of a magnet."
-                },
-                {
-                    question: "彩虹有多少種顏色？",
-                    options: ["5 種", "6 種", "7 種", "8 種"],
-                    correct: 2,
-                    explanation: "彩虹有 7 種顏色：紅、橙、黃、綠、藍、靛、紫 (ROY G BIV)。\n\nA rainbow has 7 colors: Red, Orange, Yellow, Green, Blue, Indigo, and Violet."
-                },
-                {
-                    question: "地球圍繞什麼運行？",
-                    options: ["月球", "太陽", "火星", "銀河系中心"],
-                    correct: 1,
-                    explanation: "地球圍繞太陽運行，公轉一周需要約 365 天（一年）。\n\nEarth orbits around the Sun, taking about 365 days to complete one revolution."
-                },
-                {
-                    question: "下列哪種動物是哺乳動物？",
-                    options: ["青蛙", "企鵝", "鯨魚", "蜥蝪"],
-                    correct: 2,
-                    explanation: "鯨魚是哺乳動物，用肺呼吸，會哺乳餵養幼崽。青蛙是兩棲動物，企鵝是鳥類，蜥蝪是爬蟲類。\n\nWhales are mammals - they breathe air and nurse their young with milk. Frogs are amphibians, penguins are birds, and lizards are reptiles."
-                },
-                {
-                    question: "電流的基本單位是什麼？",
-                    options: ["伏特 (Volt)", "安培 (Ampere)", "歐姆 (Ohm)", "瓦特 (Watt)"],
-                    correct: 1,
-                    explanation: "電流的單位是安培 (Ampere/A)，伏特是電壓單位，歐姆是電阻單位，瓦特是功率單位。\n\nThe unit of electric current is Ampere (A). Volt is for voltage, Ohm is for resistance, and Watt is for power."
-                }
-            ]
-        };
-
+        // ==========================================
+        // ICAS Practice Test - Main Logic
+        // ==========================================
+        
         // Quiz State
         let currentSubject = '';
         let currentQuestions = [];
@@ -716,30 +11,62 @@
         let selectedOption = -1;
         let answered = false;
         let timerInterval;
-        let timeRemaining = 900; // 15 minutes
+        let timeRemaining = 1200; // 20 minutes
         let startTime;
+        const QUESTIONS_PER_QUIZ = 15;
+
+        // Subject configuration
+        const subjectConfig = {
+            math: { name: '數學 Mathematics', icon: '🔢', time: 1200 },
+            english: { name: '英文 English', icon: '📚', time: 1200 },
+            science: { name: '科學 Science', icon: '🔬', time: 1200 }
+        };
+
+        // Shuffle array (Fisher-Yates algorithm)
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // Get questions for subject
+        function getQuestionsForSubject(subject) {
+            let allQuestions;
+            switch(subject) {
+                case 'math':
+                    allQuestions = mathQuestions;
+                    break;
+                case 'english':
+                    allQuestions = englishQuestions;
+                    break;
+                case 'science':
+                    allQuestions = scienceQuestions;
+                    break;
+                default:
+                    return [];
+            }
+            // Shuffle and take 15 random questions
+            const shuffled = shuffleArray(allQuestions);
+            return shuffled.slice(0, QUESTIONS_PER_QUIZ);
+        }
 
         function startQuiz(subject) {
             currentSubject = subject;
-            currentQuestions = [...questionBanks[subject]];
-            // Shuffle questions
-            currentQuestions.sort(() => Math.random() - 0.5);
+            currentQuestions = getQuestionsForSubject(subject);
             currentQuestionIndex = 0;
             score = 0;
-            timeRemaining = 900;
+            timeRemaining = subjectConfig[subject].time;
             startTime = Date.now();
 
             document.getElementById('subjectSelection').style.display = 'none';
             document.getElementById('quizContainer').style.display = 'block';
             document.getElementById('resultsContainer').style.display = 'none';
 
-            const titles = {
-                math: '數學 Mathematics',
-                english: '英文 English',
-                science: '科學 Science'
-            };
-            document.getElementById('quizTitle').textContent = titles[subject];
-            document.getElementById('totalQ').textContent = currentQuestions.length;
+            document.getElementById('quizTitle').textContent = subjectConfig[subject].name;
+            document.getElementById('totalQ').textContent = QUESTIONS_PER_QUIZ;
 
             startTimer();
             displayQuestion();
@@ -764,7 +91,20 @@
             
             if (timeRemaining < 60) {
                 document.getElementById('timer').style.background = '#ff4757';
+            } else if (timeRemaining < 300) {
+                document.getElementById('timer').style.background = '#ffa502';
+            } else {
+                document.getElementById('timer').style.background = '#ff6b6b';
             }
+        }
+
+        function getDifficultyLabel(difficulty) {
+            const labels = {
+                easy: '簡單',
+                medium: '中等',
+                hard: '困難'
+            };
+            return labels[difficulty] || '中等';
         }
 
         function displayQuestion() {
@@ -777,8 +117,13 @@
             document.getElementById('questionText').textContent = q.question;
             document.getElementById('scoreDisplay').textContent = score;
 
+            // Update difficulty badge
+            const badge = document.getElementById('difficultyBadge');
+            badge.textContent = getDifficultyLabel(q.difficulty);
+            badge.className = `difficulty-badge difficulty-${q.difficulty}`;
+
             // Update progress bar
-            const progress = ((currentQuestionIndex + 1) / currentQuestions.length) * 100;
+            const progress = ((currentQuestionIndex + 1) / QUESTIONS_PER_QUIZ) * 100;
             document.getElementById('progressBar').style.width = progress + '%';
 
             // Generate options
@@ -834,7 +179,7 @@
 
             // Update score
             if (selectedOption === q.correct) {
-                score += 10;
+                score += 1;
                 document.getElementById('scoreDisplay').textContent = score;
             }
 
@@ -845,11 +190,11 @@
             let explanationHTML = '';
             if (selectedOption !== q.correct) {
                 explanationHTML += `<div class="your-answer">你的答案：${q.options[selectedOption]}</div>`;
-                explanationHTML += `<div class="correct-answer">正確答案：${q.options[q.correct]}</div><br>`;
+                explanationHTML += `<div class="correct-answer">✅ 正確答案：${q.options[q.correct]}</div><br>`;
             } else {
                 explanationHTML += `<div class="correct-answer">✅ 答對了！Correct!</div><br>`;
             }
-            explanationHTML += q.explanation;
+            explanationHTML += q.explanation.replace(/\n/g, '<br>');
             
             explanationText.innerHTML = explanationHTML;
             explanationDiv.classList.add('show');
@@ -858,7 +203,7 @@
             document.getElementById('nextBtn').style.display = 'block';
 
             // Check if last question
-            if (currentQuestionIndex === currentQuestions.length - 1) {
+            if (currentQuestionIndex === QUESTIONS_PER_QUIZ - 1) {
                 document.getElementById('nextBtn').textContent = '查看結果 →';
             }
         }
@@ -866,7 +211,7 @@
         function nextQuestion() {
             currentQuestionIndex++;
             
-            if (currentQuestionIndex < currentQuestions.length) {
+            if (currentQuestionIndex < QUESTIONS_PER_QUIZ) {
                 document.getElementById('nextBtn').textContent = '下一題 →';
                 displayQuestion();
             } else {
@@ -884,28 +229,29 @@
             document.getElementById('quizContainer').style.display = 'none';
             document.getElementById('resultsContainer').style.display = 'block';
 
-            const percentage = Math.round((score / (currentQuestions.length * 10)) * 100);
+            const percentage = Math.round((score / QUESTIONS_PER_QUIZ) * 100);
             document.getElementById('finalScore').textContent = percentage + '%';
-            document.getElementById('correctCount').textContent = score / 10;
-            document.getElementById('wrongCount').textContent = currentQuestions.length - (score / 10);
+            document.getElementById('correctCount').textContent = score;
+            document.getElementById('wrongCount').textContent = QUESTIONS_PER_QUIZ - score;
             document.getElementById('timeUsed').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
             // Set message based on score
             let message = '';
             if (percentage >= 80) {
-                message = '太棒了！Excellent work! 🎉';
+                message = '太棒了！Excellent work! 🎉 你掌握得很好！';
             } else if (percentage >= 60) {
-                message = '做得好！Good job! 👍 繼續努力！';
+                message = '做得好！Good job! 👍 繼續練習，你會越來越好！';
+            } else if (percentage >= 40) {
+                message = '繼續加油！Keep practicing! 💪 多看看解釋，理解題目！';
             } else {
-                message = '繼續練習！Keep practicing! 💪 你可以的！';
+                message = '不要氣餒！Don\'t give up! 📚 重新練習，慢慢進步！';
             }
             document.getElementById('resultsMessage').textContent = message;
         }
 
         function restartQuiz() {
-            document.getElementById('resultsContainer').style.display = 'none';
-            document.getElementById('subjectSelection').style.display = 'grid';
-            document.getElementById('timer').style.background = '#ff6b6b';
+            // Restart with new random questions
+            startQuiz(currentSubject);
         }
 
         function goBack() {
