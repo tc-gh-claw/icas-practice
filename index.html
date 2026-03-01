@@ -1,9 +1,8 @@
 
         // ==========================================
-        // ICAS Practice Test - Main Logic
+        // ICAS Practice Test - Main Logic (100 Questions Version)
         // ==========================================
         
-        // Quiz State
         let currentSubject = '';
         let currentQuestions = [];
         let currentQuestionIndex = 0;
@@ -11,18 +10,16 @@
         let selectedOption = -1;
         let answered = false;
         let timerInterval;
-        let timeRemaining = 1200; // 20 minutes
+        let timeRemaining = 1800; // 30 minutes
         let startTime;
-        const QUESTIONS_PER_QUIZ = 15;
+        const QUESTIONS_PER_QUIZ = 20;
 
-        // Subject configuration
         const subjectConfig = {
-            math: { name: '數學 Mathematics', icon: '🔢', time: 1200 },
-            english: { name: '英文 English', icon: '📚', time: 1200 },
-            science: { name: '科學 Science', icon: '🔬', time: 1200 }
+            math: { name: '數學 Mathematics', icon: '🔢', time: 1800 },
+            english: { name: '英文 English', icon: '📚', time: 1800 },
+            science: { name: '科學 Science', icon: '🔬', time: 1800 }
         };
 
-        // Shuffle array (Fisher-Yates algorithm)
         function shuffleArray(array) {
             const shuffled = [...array];
             for (let i = shuffled.length - 1; i > 0; i--) {
@@ -32,23 +29,14 @@
             return shuffled;
         }
 
-        // Get questions for subject
         function getQuestionsForSubject(subject) {
             let allQuestions;
             switch(subject) {
-                case 'math':
-                    allQuestions = mathQuestions;
-                    break;
-                case 'english':
-                    allQuestions = englishQuestions;
-                    break;
-                case 'science':
-                    allQuestions = scienceQuestions;
-                    break;
-                default:
-                    return [];
+                case 'math': allQuestions = mathQuestions; break;
+                case 'english': allQuestions = englishQuestions; break;
+                case 'science': allQuestions = scienceQuestions; break;
+                default: return [];
             }
-            // Shuffle and take 15 random questions
             const shuffled = shuffleArray(allQuestions);
             return shuffled.slice(0, QUESTIONS_PER_QUIZ);
         }
@@ -77,34 +65,19 @@
             timerInterval = setInterval(() => {
                 timeRemaining--;
                 updateTimerDisplay();
-                if (timeRemaining <= 0) {
-                    endQuiz();
-                }
+                if (timeRemaining <= 0) endQuiz();
             }, 1000);
         }
 
         function updateTimerDisplay() {
             const minutes = Math.floor(timeRemaining / 60);
             const seconds = timeRemaining % 60;
-            document.getElementById('timer').textContent = 
-                `${minutes}:${seconds.toString().padStart(2, '0')}`;
-            
-            if (timeRemaining < 60) {
-                document.getElementById('timer').style.background = '#ff4757';
-            } else if (timeRemaining < 300) {
-                document.getElementById('timer').style.background = '#ffa502';
-            } else {
-                document.getElementById('timer').style.background = '#ff6b6b';
-            }
+            document.getElementById('timer').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            document.getElementById('timer').style.background = timeRemaining < 60 ? '#ff4757' : timeRemaining < 300 ? '#ffa502' : '#ff6b6b';
         }
 
-        function getDifficultyLabel(difficulty) {
-            const labels = {
-                easy: '簡單',
-                medium: '中等',
-                hard: '困難'
-            };
-            return labels[difficulty] || '中等';
+        function getDifficultyLabel(d) {
+            return { easy: '簡單', medium: '中等', hard: '困難' }[d] || '中等';
         }
 
         function displayQuestion() {
@@ -114,30 +87,23 @@
 
             document.getElementById('currentQ').textContent = currentQuestionIndex + 1;
             document.getElementById('questionNum').textContent = currentQuestionIndex + 1;
-            document.getElementById('questionText').textContent = q.question;
+            document.getElementById('questionText').textContent = q.q;
             document.getElementById('scoreDisplay').textContent = score;
 
-            // Update difficulty badge
             const badge = document.getElementById('difficultyBadge');
-            badge.textContent = getDifficultyLabel(q.difficulty);
-            badge.className = `difficulty-badge difficulty-${q.difficulty}`;
+            badge.textContent = getDifficultyLabel(q.d);
+            badge.className = `difficulty-badge difficulty-${q.d}`;
 
-            // Update progress bar
-            const progress = ((currentQuestionIndex + 1) / QUESTIONS_PER_QUIZ) * 100;
-            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('progressBar').style.width = `${((currentQuestionIndex + 1) / QUESTIONS_PER_QUIZ) * 100}%`;
 
-            // Generate options
             const optionsContainer = document.getElementById('optionsContainer');
             optionsContainer.innerHTML = '';
             document.getElementById('explanation').classList.remove('show');
 
-            q.options.forEach((option, index) => {
+            q.o.forEach((option, index) => {
                 const optionDiv = document.createElement('div');
                 optionDiv.className = 'option';
-                optionDiv.innerHTML = `
-                    <div class="option-letter">${String.fromCharCode(65 + index)}</div>
-                    <div>${option}</div>
-                `;
+                optionDiv.innerHTML = `<div class="option-letter">${String.fromCharCode(65 + index)}</div><div>${option}</div>`;
                 optionDiv.onclick = () => selectOption(index);
                 optionsContainer.appendChild(optionDiv);
             });
@@ -149,79 +115,52 @@
 
         function selectOption(index) {
             if (answered) return;
-            
             selectedOption = index;
-            const options = document.querySelectorAll('.option');
-            options.forEach((opt, i) => {
-                opt.classList.toggle('selected', i === index);
-            });
+            document.querySelectorAll('.option').forEach((opt, i) => opt.classList.toggle('selected', i === index));
         }
 
         function submitAnswer() {
-            if (selectedOption === -1) {
-                alert('請選擇一個答案！Please select an answer!');
-                return;
-            }
+            if (selectedOption === -1) { alert('請選擇一個答案！Please select an answer!'); return; }
 
             answered = true;
             const q = currentQuestions[currentQuestionIndex];
             const options = document.querySelectorAll('.option');
 
-            // Mark correct and wrong answers
             options.forEach((opt, i) => {
                 opt.classList.remove('selected');
-                if (i === q.correct) {
-                    opt.classList.add('correct');
-                } else if (i === selectedOption && i !== q.correct) {
-                    opt.classList.add('wrong');
-                }
+                if (i === q.a) opt.classList.add('correct');
+                else if (i === selectedOption && i !== q.a) opt.classList.add('wrong');
             });
 
-            // Update score
-            if (selectedOption === q.correct) {
-                score += 1;
-                document.getElementById('scoreDisplay').textContent = score;
-            }
+            if (selectedOption === q.a) score++;
+            document.getElementById('scoreDisplay').textContent = score;
 
-            // Show explanation
             const explanationDiv = document.getElementById('explanation');
             const explanationText = document.getElementById('explanationText');
             
-            let explanationHTML = '';
-            if (selectedOption !== q.correct) {
-                explanationHTML += `<div class="your-answer">你的答案：${q.options[selectedOption]}</div>`;
-                explanationHTML += `<div class="correct-answer">✅ 正確答案：${q.options[q.correct]}</div><br>`;
-            } else {
-                explanationHTML += `<div class="correct-answer">✅ 答對了！Correct!</div><br>`;
-            }
-            explanationHTML += q.explanation.replace(/\n/g, '<br>');
+            let explanationHTML = selectedOption !== q.a 
+                ? `<div class="your-answer">你的答案：${q.o[selectedOption]}</div><div class="correct-answer">✅ 正確答案：${q.o[q.a]}</div><br>`
+                : `<div class="correct-answer">✅ 答對了！Correct!</div><br>`;
+            explanationHTML += q.e.replace(/\n/g, '<br>');
             
             explanationText.innerHTML = explanationHTML;
             explanationDiv.classList.add('show');
 
             document.getElementById('submitBtn').style.display = 'none';
             document.getElementById('nextBtn').style.display = 'block';
-
-            // Check if last question
-            if (currentQuestionIndex === QUESTIONS_PER_QUIZ - 1) {
-                document.getElementById('nextBtn').textContent = '查看結果 →';
-            }
+            if (currentQuestionIndex === QUESTIONS_PER_QUIZ - 1) document.getElementById('nextBtn').textContent = '查看結果 →';
         }
 
         function nextQuestion() {
             currentQuestionIndex++;
-            
             if (currentQuestionIndex < QUESTIONS_PER_QUIZ) {
                 document.getElementById('nextBtn').textContent = '下一題 →';
                 displayQuestion();
-            } else {
-                endQuiz();
-            }
+            } else endQuiz();
         }
 
         function endQuiz() {
             clearInterval(timerInterval);
-            
             const timeUsed = Math.floor((Date.now() - startTime) / 1000);
             const minutes = Math.floor(timeUsed / 60);
             const seconds = timeUsed % 60;
@@ -235,25 +174,14 @@
             document.getElementById('wrongCount').textContent = QUESTIONS_PER_QUIZ - score;
             document.getElementById('timeUsed').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
-            // Set message based on score
-            let message = '';
-            if (percentage >= 80) {
-                message = '太棒了！Excellent work! 🎉 你掌握得很好！';
-            } else if (percentage >= 60) {
-                message = '做得好！Good job! 👍 繼續練習，你會越來越好！';
-            } else if (percentage >= 40) {
-                message = '繼續加油！Keep practicing! 💪 多看看解釋，理解題目！';
-            } else {
-                message = '不要氣餒！Don\'t give up! 📚 重新練習，慢慢進步！';
-            }
+            let message = percentage >= 80 ? '太棒了！Excellent work! 🎉 你掌握得很好！' :
+                          percentage >= 60 ? '做得好！Good job! 👍 繼續練習，你會越來越好！' :
+                          percentage >= 40 ? '繼續加油！Keep practicing! 💪 多看看解釋，理解題目！' :
+                          '不要氣餒！Don\'t give up! 📚 重新練習，慢慢進步！';
             document.getElementById('resultsMessage').textContent = message;
         }
 
-        function restartQuiz() {
-            // Restart with new random questions
-            startQuiz(currentSubject);
-        }
-
+        function restartQuiz() { startQuiz(currentSubject); }
         function goBack() {
             clearInterval(timerInterval);
             document.getElementById('quizContainer').style.display = 'none';
